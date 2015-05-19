@@ -4,7 +4,7 @@ require 'spec_helper'
 describe 'dialer' do
 
   let(:facts) {{ :operatingsystem => 'Windows' }}
-  let(:params) {{ :product => 'ODS', :ensure => 'installed' }}
+  let(:params) {{ :product => 'ODS', :ensure => 'installed', :version => '2015R2' }}
 
   context 'with defaults for all parameters' do
     it { should contain_class('dialer') }
@@ -25,7 +25,7 @@ describe 'dialer' do
   end
 
   context 'should fail if product parameter is empty' do
-  	let(:params) {{ :product => '', :ensure => 'installed' }}
+  	let(:params) {{ :product => '', :ensure => 'installed', :version => '2015R2' }}
   	it do
   	  expect {
   	    should contain_class('dialer') 
@@ -34,12 +34,29 @@ describe 'dialer' do
   end
 
   context 'should fail if ensure parameter is not set to installed' do
-  	let(:params) {{ :product => 'ODS', :ensure => '' }}
+  	let(:params) {{ :product => 'ODS', :ensure => '', :version => '2015R2' }}
   	it do
   	  expect {
   	    should contain_class('dialer') 
   	  }.to raise_error(Puppet::Error, /only installed is supported for the ensure parameter at this time/)
   	end
+  end
+
+  context 'should fail if version parameter is not set' do
+  	let(:params) {{ :product => 'ODS', :ensure => '' }}
+  	it do
+  	  expect {
+  	    should contain_class('dialer') 
+  	  }.to raise_error(Puppet::Error, /Must pass version to Class\[Dialer\]/)
+  	end
+  end
+
+  context 'should mount a drive' do
+    it { should contain_exec('mount-dialer-iso')}
+  end
+
+  context 'should unmount a drive' do
+    it { should contain_exec('unmount-dialer-iso')}
   end
 
 end

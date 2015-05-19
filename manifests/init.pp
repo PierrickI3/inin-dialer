@@ -4,8 +4,14 @@
 #
 # === Parameters
 #
+# [ensure]
+#   Only 'installed' is supported at this time to install and configure Dialer products
+#
 # [product]
 #   Either ODS (Outbound Dialer Server) or CCS (Central Campaign Server)
+#
+# [version]
+#   Dialer version (i.e. 2015_R2)
 #
 # === Variables
 #
@@ -37,6 +43,7 @@ include stdlib
 class dialer (
   $ensure,
   $product,
+  $version,
 )
 {
 
@@ -56,6 +63,46 @@ class dialer (
   {
   	err('only installed is supported for ensure parameter at this time')
   	fail('only installed is supported for the ensure parameter at this time')
+  }
+
+  if (!$version)
+  {
+  	err('dialer version is not defined')
+  	fail('dialer version is not defined')
+  }
+
+  $mountdriveletter = 'e:'
+  $daascache        = 'C:\\daas-cache'
+  $dialeriso        = "Dialer_${version}.iso"
+
+  case $ensure
+  {
+    installed:
+    {
+      # Mount Dialer ISO
+      debug('Mounting Dialer ISO')
+      exec {'mount-dialer-iso':
+        command => "cmd.exe /c imdisk -a -f \"${daascache}\\${dialeriso}\" -m ${mountdriveletter}",
+        path    => $::path,
+        cwd     => $::system32,
+        creates => "${mountdriveletter}/Installs/ServerComponents/Dialer_${version}.msi",
+        timeout => 30,
+      }
+
+      # Unmount CIC ISO
+      debug('Unmounting Dialer ISO')
+      exec {'unmount-dialer-iso':
+        command => "cmd.exe /c imdisk -D -m ${mountdriveletter}",
+        path    => $::path,
+        cwd     => $::system32,
+        timeout => 30,
+        require => [
+                    Exec['mount-dialer-iso'],
+                    #Exec['set-windows-culture'],
+                  ],
+      }
+
+    }
   }
 
 }
