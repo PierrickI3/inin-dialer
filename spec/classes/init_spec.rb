@@ -71,7 +71,7 @@ describe 'dialer' do
   context 'should have an ODS package' do
   	it { should contain_package('dialer-ods-install')
   		.with_ensure('installed')
-  		.with_require('Exec[mount-dialer-iso]') 
+  		.with_require('[Exec[mount-dialer-iso]{:command=>"mount-dialer-iso"}, Exec[dotnet-35]{:command=>"dotnet-35"}]') 
   	}
   end
 
@@ -84,13 +84,18 @@ describe 'dialer' do
   	let(:params) {{ :product => 'CCS', :ensure => 'installed', :version => '2015R2', :ccsservername => '' }}
   	it { should contain_package('dialer-ccs-install')
   		.with_ensure('installed')
-  		.with_require('Exec[mount-dialer-iso]') 
+  		.with_require('[Exec[mount-dialer-iso]{:command=>"mount-dialer-iso"}, Exec[dotnet-35]{:command=>"dotnet-35"}]') 
   	}
   end
 
   context 'should not have a CCS package when ODS is requested' do
   	let(:params) {{ :product => 'ODS', :ensure => 'installed', :version => '2015R2', :ccsservername => 'testccs' }}
   	it { should_not contain_package('dialer-ccs-install') }
+  end
+
+  context 'should install .net 3.5' do
+  	let(:params) {{ :product => 'ODS', :ensure => 'installed', :version => '2015R2', :ccsservername => 'testccs' }}
+  	it { should contain_exec('dotnet-35') }
   end
 
 end

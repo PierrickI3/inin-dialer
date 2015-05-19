@@ -5,7 +5,8 @@
 # === Parameters
 #
 # [ensure]
-#   Only 'installed' is supported at this time to install and configure Dialer products
+#   Only 'installed' is supported at this time to install 
+#   and configure Dialer products
 #
 # [product]
 #   Either ODS (Outbound Dialer Server) or CCS (Central Campaign Server)
@@ -42,6 +43,7 @@
 # Copyright 2015 Interactive Intelligence, Inc.
 #
 include stdlib
+include dotnet
 
 class dialer (
   $ensure,
@@ -59,20 +61,20 @@ class dialer (
 
   if !($product in ['ODS', 'CCS'])
   {
-  	err('missing product')
-  	fail('product must be either ODS or CCS')
+    err('missing product')
+    fail('product must be either ODS or CCS')
   }
 
   if !($ensure in ['installed'])
   {
-  	err('only installed is supported for ensure parameter at this time')
-  	fail('only installed is supported for the ensure parameter at this time')
+    err('only installed is supported for ensure parameter at this time')
+    fail('only installed is supported for the ensure parameter at this time')
   }
 
   if (!$version)
   {
-  	err('dialer version is not defined')
-  	fail('dialer version is not defined')
+    err('dialer version is not defined')
+    fail('dialer version is not defined')
   }
 
   $mountdriveletter = 'e:'
@@ -83,6 +85,15 @@ class dialer (
   {
     installed:
     {
+      # Install .Net 3.5
+      exec {'dotnet-35':
+        command  => 'Install-WindowsFeature -name NET-Framework-Core',
+        provider => powershell,
+        path     => $::path,
+        cwd      => $::system32,
+        timeout  => 30,
+      }
+
       # Mount Dialer ISO
       debug('Mounting Dialer ISO')
       exec {'mount-dialer-iso':
@@ -95,36 +106,53 @@ class dialer (
 
       case $product
       {
-      	ODS:
-      	{
-      	  if (!$ccsservername)
-		  {
-		  	err('Name or IP of CCS not specified')
-		  	fail('Name or IP of CCS not specified')
-		  }
+        ODS:
+        {
+          if (!$ccsservername)
+          {
+            err('Name or IP of CCS not specified')
+            fail('Name or IP of CCS not specified')
+          }
 
-		  # Install ODS
-		  debug("Installing ODS")
-		  package {'dialer-ods-install':
-		    ensure          => installed,
-		    source          => "${mountdriveletter}/Installs/ServerComponents/ODS_${version}",
-		    install_options => [{'STARTEDBYEXEORIUPDATE' => '1'}, {'REBOOT' => 'ReallySuppress'}, {'CCSSERVERNAME' => "${ccsservername}" },],
-		    require         => Exec['mount-dialer-iso'],
-		  }
-		}
+          # Install ODS
+          debug('Installing ODS')
+          package {'dialer-ods-install':
+            ensure          => installed,
+            source          => "${mountdriveletter}/Installs/ServerComponents/ODS_${version}",
+            install_options => [
+              {'STARTEDBYEXEORIUPDATE' => '1'},
+              {'REBOOT'                => 'ReallySuppress'},
+              {'CCSSERVERNAME'         => $ccsservername },
+            ],
+            require         => [
+              Exec['mount-dialer-iso'],
+              Exec['dotnet-35'],
+            ],
+          }
+        }
 
-		CCS:
-      	{
-		  # Install CCS
-		  debug("Installing CCS")
-		  package {'dialer-ccs-install':
-		    ensure          => installed,
-		    source          => "${mountdriveletter}/Installs/Off-ServerComponents/CCS_${version}",
-		    install_options => [{'STARTEDBYEXEORIUPDATE' => '1'}, {'REBOOT' => 'ReallySuppress'},],
-		    require         => Exec['mount-dialer-iso'],
-		  }
-		}
-	  }
+        CCS:
+        {
+          # Install CCS
+          debug('Installing CCS')
+          package {'dialer-ccs-install':
+            ensure          => installed,
+            source          => "${mountdriveletter}/Installs/Off-ServerComponents/CCS_${version}",
+            install_options => [
+              {'STARTEDBYEXEORIUPDATE' => '1'},
+              {'REBOOT'                => 'ReallySuppress'},
+              {'PROMPTEDUSER'          => 'vagrant'},
+              {'PROMPTEDPASSWORD'      => 'vagrant'},
+              {'PROMPTEDDOMAIN'        => $::hostname},
+              {'TRACING_LOGS'          => 'C:/I3/IC/Logs'},
+            ],
+            require         => [
+              Exec['mount-dialer-iso'],
+              Exec['dotnet-35'],
+            ],
+          }
+        }
+      }
 
       # Unmount CIC ISO
       debug('Unmounting Dialer ISO')
@@ -135,10 +163,13 @@ class dialer (
         timeout => 30,
         require => [
                     Exec['mount-dialer-iso'],
-                    #Exec['set-windows-culture'],
+                    #TODO Add a notify to check if ODS or CCS has been installed
                   ],
       }
-
+    }
+    default:
+    {
+      debug("Unknown command ${ensure}")
     }
   }
 
