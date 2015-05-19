@@ -60,15 +60,6 @@ describe 'dialer' do
   	end
   end
 
-  context 'should fail if ccsservername parameter is emtpy' do
-  	let(:params) {{ :product => 'ODS', :ensure => 'installed', :version => '2015_R2', :ccsservername => '' }}
-  	it do
-  	  expect {
-  	    should contain_class('dialer') 
-  	  }.to raise_error(Puppet::Error, /Name or IP of CCS not specified/)
-  	end
-  end
-
   context 'should mount a drive' do
     it { should contain_exec('mount-dialer-iso')}
   end
