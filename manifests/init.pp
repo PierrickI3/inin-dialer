@@ -13,6 +13,9 @@
 # [version]
 #   Dialer version (i.e. 2015_R2)
 #
+# [ccsservername]
+#   Name or IP address of the CCS
+#
 # === Variables
 #
 # Here you should define a list of variables that this module would require.
@@ -44,6 +47,7 @@ class dialer (
   $ensure,
   $product,
   $version,
+  $ccsservername,
 )
 {
 
@@ -71,6 +75,12 @@ class dialer (
   	fail('dialer version is not defined')
   }
 
+  if (!$ccsservername)
+  {
+  	err('Name or IP of CCS not specified')
+  	fail('Name or IP of CCS not specified')
+  }
+
   $mountdriveletter = 'e:'
   $daascache        = 'C:\\daas-cache'
   $dialeriso        = "Dialer_${version}.iso"
@@ -87,6 +97,15 @@ class dialer (
         cwd     => $::system32,
         creates => "${mountdriveletter}/Installs/ServerComponents/Dialer_${version}.msi",
         timeout => 30,
+      }
+
+      # Install ODS
+      debug("Installing ODS")
+      package {'dialer-ods-install':
+        ensure          => installed,
+        source          => "${mountdriveletter}/Installs/ServerComponents/ODS_${version}",
+        install_options => [{'STARTEDBYEXEORIUPDATE' => '1'}, {'REBOOT' => 'ReallySuppress'}, {'CCSSERVERNAME' => "${ccsservername}" },],
+        require         => Exec['mount-dialer-iso'],
       }
 
       # Unmount CIC ISO
