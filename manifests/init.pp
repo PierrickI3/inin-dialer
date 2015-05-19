@@ -1,14 +1,11 @@
 # == Class: dialer
 #
-# Full description of class dialer here.
+# Installs and configures Dialer's ODS and CCS products
 #
 # === Parameters
 #
-# Document parameters here.
-#
-# [*sample_parameter*]
-#   Explanation of what this parameter affects and what it defaults to.
-#   e.g. "Specify one or more upstream ntp servers as an array."
+# [product]
+#   Either ODS (Outbound Dialer Server) or CCS (Central Campaign Server)
 #
 # === Variables
 #
@@ -24,18 +21,41 @@
 # === Examples
 #
 #  class { 'dialer':
-#    servers => [ 'pool.ntp.org', 'ntp.local.company.com' ],
+#    product => 'ODS',
 #  }
 #
 # === Authors
 #
-# Author Name <author@domain.com>
+# Pierrick Lozach <pierrick.lozach@inin.com>
 #
 # === Copyright
 #
-# Copyright 2015 Your name here, unless otherwise noted.
+# Copyright 2015 Interactive Intelligence, Inc.
 #
-class dialer {
+include stdlib
 
+class dialer (
+  $ensure,
+  $product,
+)
+{
+
+  if ($::operatingsystem != 'Windows')
+  {
+    err('This module works on Windows only!')
+    fail('Unsupported OS')
+  }
+
+  if !($product in ['ODS', 'CCS'])
+  {
+  	err('missing product')
+  	fail('product must be either ODS or CCS')
+  }
+
+  if !($ensure in ['installed'])
+  {
+  	err('only installed is supported for ensure parameter at this time')
+  	fail('only installed is supported for the ensure parameter at this time')
+  }
 
 }
