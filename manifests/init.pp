@@ -152,6 +152,10 @@ class dialer (
             ],
           }
         }
+        default:
+        {
+          debug("Unknow product ${product}")
+        }
       }
 
       # Unmount CIC ISO
