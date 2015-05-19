@@ -75,12 +75,6 @@ class dialer (
   	fail('dialer version is not defined')
   }
 
-  if (!$ccsservername)
-  {
-  	err('Name or IP of CCS not specified')
-  	fail('Name or IP of CCS not specified')
-  }
-
   $mountdriveletter = 'e:'
   $daascache        = 'C:\\daas-cache'
   $dialeriso        = "Dialer_${version}.iso"
@@ -99,14 +93,38 @@ class dialer (
         timeout => 30,
       }
 
-      # Install ODS
-      debug("Installing ODS")
-      package {'dialer-ods-install':
-        ensure          => installed,
-        source          => "${mountdriveletter}/Installs/ServerComponents/ODS_${version}",
-        install_options => [{'STARTEDBYEXEORIUPDATE' => '1'}, {'REBOOT' => 'ReallySuppress'}, {'CCSSERVERNAME' => "${ccsservername}" },],
-        require         => Exec['mount-dialer-iso'],
-      }
+      case $product
+      {
+      	ODS:
+      	{
+      	  if (!$ccsservername)
+		  {
+		  	err('Name or IP of CCS not specified')
+		  	fail('Name or IP of CCS not specified')
+		  }
+
+		  # Install ODS
+		  debug("Installing ODS")
+		  package {'dialer-ods-install':
+		    ensure          => installed,
+		    source          => "${mountdriveletter}/Installs/ServerComponents/ODS_${version}",
+		    install_options => [{'STARTEDBYEXEORIUPDATE' => '1'}, {'REBOOT' => 'ReallySuppress'}, {'CCSSERVERNAME' => "${ccsservername}" },],
+		    require         => Exec['mount-dialer-iso'],
+		  }
+		}
+
+		CCS:
+      	{
+		  # Install CCS
+		  debug("Installing CCS")
+		  package {'dialer-ccs-install':
+		    ensure          => installed,
+		    source          => "${mountdriveletter}/Installs/Off-ServerComponents/CCS_${version}",
+		    install_options => [{'STARTEDBYEXEORIUPDATE' => '1'}, {'REBOOT' => 'ReallySuppress'},],
+		    require         => Exec['mount-dialer-iso'],
+		  }
+		}
+	  }
 
       # Unmount CIC ISO
       debug('Unmounting Dialer ISO')

@@ -75,4 +75,22 @@ describe 'dialer' do
   	}
   end
 
+  context 'should not have an ODS package when CCS is requested' do
+  	let(:params) {{ :product => 'CCS', :ensure => 'installed', :version => '2015R2', :ccsservername => '' }}
+  	it { should_not contain_package('dialer-ods-install') }
+  end
+
+  context 'should have a CCS package' do
+  	let(:params) {{ :product => 'CCS', :ensure => 'installed', :version => '2015R2', :ccsservername => '' }}
+  	it { should contain_package('dialer-ccs-install')
+  		.with_ensure('installed')
+  		.with_require('Exec[mount-dialer-iso]') 
+  	}
+  end
+
+  context 'should not have a CCS package when ODS is requested' do
+  	let(:params) {{ :product => 'ODS', :ensure => 'installed', :version => '2015R2', :ccsservername => 'testccs' }}
+  	it { should_not contain_package('dialer-ccs-install') }
+  end
+
 end
