@@ -1,4 +1,8 @@
-# dialer
+# inin-dialer
+
+[![Build Status](https://travis-ci.org/PierrickI3/inin-dialer.svg?branch=master)](https://travis-ci.org/PierrickI3/inin-dialer)
+
+Puppet module to install and configure ININ's ODS & CCS
 
 #### Table of Contents
 
