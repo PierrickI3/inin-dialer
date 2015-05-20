@@ -43,7 +43,7 @@
 # Copyright 2015 Interactive Intelligence, Inc.
 #
 include stdlib
-include dotnet
+include reboot
 
 class dialer (
   $ensure,
@@ -94,6 +94,12 @@ class dialer (
         timeout  => 300,
       }
 
+      # Reboot if an install is pending
+      reboot {'before':
+        when    => pending,
+        message => 'Installs are pending reboot. Rebooting now.',
+      }
+
       # Mount Dialer ISO
       debug('Mounting Dialer ISO')
       exec {'mount-dialer-iso':
@@ -131,7 +137,9 @@ class dialer (
             require         => [
               Exec['mount-dialer-iso'],
               Exec['dotnet-35'],
+              Reboot['before'],
             ],
+            notify          => Reboot['after-install'],
           }
 
           notify {'installed':
@@ -141,11 +149,12 @@ class dialer (
 
         CCS:
         {
+
           # Install CCS
           debug('Installing CCS')
           package {'dialer-ccs-install':
             ensure          => installed,
-            source          => "${mountdriveletter}/Installs/Off-ServerComponents/CCS_${version}.msi",
+            source          => "${mountdriveletter}\\Installs\\Off-ServerComponents\\CCS_${version}.msi",
             install_options => [
               '/l*v',
               "c:\\windows\\logs\\ccs_${version}.log",
@@ -156,12 +165,14 @@ class dialer (
               {'PROMPTEDUSER'          => 'vagrant'},
               {'PROMPTEDPASSWORD'      => 'vagrant'},
               {'PROMPTEDDOMAIN'        => $::hostname},
-              {'TRACING_LOGS'          => "C:\\I3\\IC\\Logs"},
+              {'TRACING_LOGPATH'       => 'C:\\I3\\IC\\Logs'},
             ],
             require         => [
               Exec['mount-dialer-iso'],
               Exec['dotnet-35'],
+              Reboot['before'],
             ],
+            notify          => Reboot['after-install'],
           }
 
           notify {'installed':
@@ -172,6 +183,12 @@ class dialer (
         {
           debug("Unknow product ${product}")
         }
+      }
+
+      # Reboot when finished
+      reboot {'after-install':
+        apply   => finished,
+        message => 'Install of CCS or ODS is finished. Rebooting',
       }
 
       # Unmount CIC ISO
