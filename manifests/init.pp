@@ -77,8 +77,8 @@ class dialer (
     fail('dialer version is not defined')
   }
 
-  $mountdriveletter = 'e:'
-  $daascache        = 'C:\\daas-cache'
+  $mountdriveletter = 'f:'
+  $daascache        = 'C:/daas-cache'
   $dialeriso        = "Dialer_${version}.iso"
 
   case $ensure
@@ -91,13 +91,13 @@ class dialer (
         provider => powershell,
         path     => $::path,
         cwd      => $::system32,
-        timeout  => 30,
+        timeout  => 300,
       }
 
       # Mount Dialer ISO
       debug('Mounting Dialer ISO')
       exec {'mount-dialer-iso':
-        command => "cmd.exe /c imdisk -a -f \"${daascache}\\${dialeriso}\" -m ${mountdriveletter}",
+        command => "cmd.exe /c imdisk -a -f \"${daascache}/${dialeriso}\" -m ${mountdriveletter}",
         path    => $::path,
         cwd     => $::system32,
         creates => "${mountdriveletter}/Installs/ServerComponents/Dialer_${version}.msi",
@@ -118,8 +118,12 @@ class dialer (
           debug('Installing ODS')
           package {'dialer-ods-install':
             ensure          => installed,
-            source          => "${mountdriveletter}/Installs/ServerComponents/ODS_${version}",
+            source          => "${mountdriveletter}\\Installs\\ServerComponents\\ODS_${version}.msi",
             install_options => [
+              '/l*v',
+              "c:\\windows\\logs\\ods_${version}.log",
+              '/qn',
+              '/norestart',
               {'STARTEDBYEXEORIUPDATE' => '1'},
               {'REBOOT'                => 'ReallySuppress'},
               {'CCSSERVERNAME'         => $ccsservername },
@@ -129,6 +133,10 @@ class dialer (
               Exec['dotnet-35'],
             ],
           }
+
+          notify {'installed':
+            require => Package['dialer-ods-install'],
+          }
         }
 
         CCS:
@@ -137,19 +145,27 @@ class dialer (
           debug('Installing CCS')
           package {'dialer-ccs-install':
             ensure          => installed,
-            source          => "${mountdriveletter}/Installs/Off-ServerComponents/CCS_${version}",
+            source          => "${mountdriveletter}/Installs/Off-ServerComponents/CCS_${version}.msi",
             install_options => [
+              '/l*v',
+              "c:\\windows\\logs\\ccs_${version}.log",
+              '/qn',
+              '/norestart',
               {'STARTEDBYEXEORIUPDATE' => '1'},
               {'REBOOT'                => 'ReallySuppress'},
               {'PROMPTEDUSER'          => 'vagrant'},
               {'PROMPTEDPASSWORD'      => 'vagrant'},
               {'PROMPTEDDOMAIN'        => $::hostname},
-              {'TRACING_LOGS'          => 'C:/I3/IC/Logs'},
+              {'TRACING_LOGS'          => "C:\\I3\\IC\\Logs"},
             ],
             require         => [
               Exec['mount-dialer-iso'],
               Exec['dotnet-35'],
             ],
+          }
+
+          notify {'installed':
+            require => Package['dialer-ccs-install'],
           }
         }
         default:
@@ -167,7 +183,7 @@ class dialer (
         timeout => 30,
         require => [
                     Exec['mount-dialer-iso'],
-                    #TODO Add a notify to check if ODS or CCS has been installed
+                    Notify['installed'],
                   ],
       }
     }
