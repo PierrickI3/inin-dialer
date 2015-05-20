@@ -74,8 +74,11 @@ describe 'dialer' do
     it { should contain_exec('mount-dialer-iso')}
   end
 
-  context 'should unmount a drive' do
-    it { should contain_exec('unmount-dialer-iso')}
+  # -------------------------
+  # SQL 2008 R2 Native Client
+  # -------------------------
+  context 'should install sql 2008 r2 native client' do
+    it { should contain_package('sql2008r2.nativeclient')}
   end
 
   # ---

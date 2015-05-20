@@ -85,14 +85,6 @@ class dialer (
   {
     installed:
     {
-      # Install .Net 3.5
-      exec {'dotnet-35':
-        command  => 'Install-WindowsFeature -name NET-Framework-Core',
-        provider => powershell,
-        path     => $::path,
-        cwd      => $::system32,
-        timeout  => 300,
-      }
 
       # Reboot if an install is pending
       reboot {'before':
@@ -100,7 +92,24 @@ class dialer (
         message => 'Installs are pending reboot. Rebooting now.',
       }
 
-      # Mount Dialer ISO
+      # Install .Net 3.5
+      exec {'dotnet-35':
+        command  => 'Install-WindowsFeature -name NET-Framework-Core',
+        provider => powershell,
+        path     => $::path,
+        cwd      => $::system32,
+        timeout  => 300,
+        require  => Reboot['before'],
+      }
+
+      # Install SQL 2008 R2 Native Client
+      package {'sql2008r2.nativeclient':
+        ensure   => installed,
+        provider => chocolatey,
+        require  => Reboot['before'],
+      }
+
+      # Mount Dialer ISO. No need to unmount as we are rebooting when finished.
       debug('Mounting Dialer ISO')
       exec {'mount-dialer-iso':
         command => "cmd.exe /c imdisk -a -f \"${daascache}/${dialeriso}\" -m ${mountdriveletter}",
@@ -108,6 +117,7 @@ class dialer (
         cwd     => $::system32,
         creates => "${mountdriveletter}/Installs/ServerComponents/Dialer_${version}.msi",
         timeout => 30,
+        require => Reboot['before'],
       }
 
       case $product
@@ -138,6 +148,7 @@ class dialer (
               Exec['mount-dialer-iso'],
               Exec['dotnet-35'],
               Reboot['before'],
+              Package['sql2008r2.nativeclient'],
             ],
             notify          => Reboot['after-install'],
           }
@@ -171,6 +182,7 @@ class dialer (
               Exec['mount-dialer-iso'],
               Exec['dotnet-35'],
               Reboot['before'],
+              Package['sql2008r2.nativeclient'],
             ],
             notify          => Reboot['after-install'],
           }
@@ -185,24 +197,12 @@ class dialer (
         }
       }
 
-      # Reboot when finished
+      # Reboot when finished. Drive will not be mounted again so no need to unmount it.
       reboot {'after-install':
         apply   => finished,
         message => 'Install of CCS or ODS is finished. Rebooting',
       }
 
-      # Unmount CIC ISO
-      debug('Unmounting Dialer ISO')
-      exec {'unmount-dialer-iso':
-        command => "cmd.exe /c imdisk -D -m ${mountdriveletter}",
-        path    => $::path,
-        cwd     => $::system32,
-        timeout => 30,
-        require => [
-                    Exec['mount-dialer-iso'],
-                    Notify['installed'],
-                  ],
-      }
     }
     default:
     {
