@@ -6,6 +6,10 @@ describe 'dialer' do
   let(:facts) {{ :operatingsystem => 'Windows' }}
   let(:params) {{ :product => 'ODS', :ensure => 'installed', :version => '2015R2', :ccsservername => 'testccs' }}
 
+  # -----------
+  # Basic tests
+  # -----------
+
   context 'with defaults for all parameters' do
     it { should contain_class('dialer') }
   end
@@ -24,6 +28,9 @@ describe 'dialer' do
     end
   end
 
+  # ---------------
+  # Parameter tests
+  # ---------------
   context 'should fail if product parameter is empty' do
   	let(:params) {{ :product => '', :ensure => 'installed', :version => '2015R2', :ccsservername => 'testccs' }}
   	it do
@@ -60,6 +67,9 @@ describe 'dialer' do
   	end
   end
 
+  # --------------
+  # Mounting tests
+  # --------------
   context 'should mount a drive' do
     it { should contain_exec('mount-dialer-iso')}
   end
@@ -68,6 +78,9 @@ describe 'dialer' do
     it { should contain_exec('unmount-dialer-iso')}
   end
 
+  # ---
+  # ODS
+  # ---
   context 'should have an ODS package' do
   	it { should contain_package('dialer-ods-install')
   		.with_ensure('installed')
@@ -80,6 +93,9 @@ describe 'dialer' do
   	it { should_not contain_package('dialer-ods-install') }
   end
 
+  # ---
+  # CCS
+  # ---
   context 'should have a CCS package' do
   	let(:params) {{ :product => 'CCS', :ensure => 'installed', :version => '2015R2', :ccsservername => '' }}
   	it { should contain_package('dialer-ccs-install')
@@ -93,6 +109,9 @@ describe 'dialer' do
   	it { should_not contain_package('dialer-ccs-install') }
   end
 
+  # ----
+  # .Net
+  # ----
   context 'should install .net 3.5' do
   	let(:params) {{ :product => 'ODS', :ensure => 'installed', :version => '2015R2', :ccsservername => 'testccs' }}
   	it { should contain_exec('dotnet-35') }
