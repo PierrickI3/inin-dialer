@@ -25,7 +25,7 @@ Requires Windows 2012R2 and a copy of the Dialer 201xRx iso file.
 ## Module Description
 
 Installs and configures a Central Campaign Server (CCS) and or an Outbound Dialer Server (ODS) 
-to use with a CIC server from Interactive Intelligence.
+to use with a CIC server from Interactive Intelligence. Reboots once the install is complete.
 
 ## Setup
 
@@ -41,6 +41,7 @@ to use with a CIC server from Interactive Intelligence.
 * Dialer ISO file should be in a shared folder located in c:\daas-cache
 * For ODS, CIC should already be installed and configured
 * For CCS, check the requirements on http://testlab.inin.com/ProductsPage.aspx?ProductType=20 (Dialer section)
+* Only tested in Windows 2012R2
 
 ### Beginning with dialer
 
