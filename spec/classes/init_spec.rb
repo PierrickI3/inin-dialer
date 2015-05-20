@@ -82,9 +82,7 @@ describe 'dialer' do
   # ODS
   # ---
   context 'should have an ODS package' do
-  	it { should contain_package('dialer-ods-install')
-  		.with_ensure('installed')
-  	}
+  	it { should contain_package('dialer-ods-install') }
   end
 
   context 'should not have an ODS package when CCS is requested' do
@@ -97,9 +95,7 @@ describe 'dialer' do
   # ---
   context 'should have a CCS package' do
   	let(:params) {{ :product => 'CCS', :ensure => 'installed', :version => '2015R2', :ccsservername => '' }}
-  	it { should contain_package('dialer-ccs-install')
-  		.with_ensure('installed')
-  	}
+  	it { should contain_package('dialer-ccs-install') }
   end
 
   context 'should not have a CCS package when ODS is requested' do
