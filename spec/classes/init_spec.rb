@@ -84,7 +84,6 @@ describe 'dialer' do
   context 'should have an ODS package' do
   	it { should contain_package('dialer-ods-install')
   		.with_ensure('installed')
-  		.with_require("[Exec[mount-dialer-iso]{:command=>\"mount-dialer-iso\"}, Exec[dotnet-35]{:command=>\"dotnet-35\"}]") 
   	}
   end
 
@@ -100,7 +99,6 @@ describe 'dialer' do
   	let(:params) {{ :product => 'CCS', :ensure => 'installed', :version => '2015R2', :ccsservername => '' }}
   	it { should contain_package('dialer-ccs-install')
   		.with_ensure('installed')
-  		.with_require("[Exec[mount-dialer-iso]{:command=>\"mount-dialer-iso\"}, Exec[dotnet-35]{:command=>\"dotnet-35\"}]") 
   	}
   end
 
