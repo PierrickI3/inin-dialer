@@ -232,8 +232,7 @@ class dialer (
           # Create the UDL file
           file {'c:/tmp/dialerdatabase.udl':
             ensure  => present,
-            name    => 'connection.udl',
-            content => '[oledb]',
+            content => template('dialer/connection.udl.erb'),
             require => [
               Exec['create-sql-database'],
               Package['dialer-ccs-install'],
