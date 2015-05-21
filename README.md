@@ -32,47 +32,41 @@ to use with a CIC server from Interactive Intelligence. Reboots once the install
 ### What dialer affects
 
 * Installs SQL 2008 R2 Native Client
-* Installs SQL Server 2012 Express
+* Installs SQL Server 2012 Express & creates a database
 * Installs CCS or ODS
+* Creates a UDL file called C:\tmp\connection.udl
 
-### Setup Requirements **OPTIONAL**
+### Setup Requirements
 
 * Dialer ISO file should be in a shared folder located in c:\daas-cache
 * For ODS, CIC should already be installed and configured
 * For CCS, check the requirements on http://testlab.inin.com/ProductsPage.aspx?ProductType=20 (Dialer section)
 * Only tested in Windows 2012R2
 
-### Beginning with dialer
-
-The very basic steps needed for a user to get the module up and running.
-
-If your most recent release breaks compatibility or requires particular steps
-for upgrading, you may wish to include an additional section here: Upgrading
-(For an example, see http://forge.puppetlabs.com/puppetlabs/firewall).
-
 ## Usage
 
-Put the classes, types, and resources for customizing, configuring, and doing
-the fancy stuff with your module here.
+To install a Central Campaign Server (CCS):
 
-## Reference
+```puppet
+class {'dialer':
+  ensure        => 'installed',
+  product       => 'CCS',
+  version       => '2015_R2',
+  ccsservername => '',
+}
+```
 
-Here, list the classes, types, providers, facts, etc contained in your module.
-This section should include all of the under-the-hood workings of your module so
-people know what the module is touching on their system but don't need to mess
-with things. (We are working on automating this section!)
+To install an Outbound Dialing Server (ODS):
+
+```puppet
+class {'dialer':
+  ensure        => 'installed',
+  product       => 'ODS',
+  version       => '2015_R2',
+  ccsservername => 'ccsserver',
+}
+```
 
 ## Limitations
 
-This is where you list OS compatibility, version compatibility, etc.
-
-## Development
-
-Since your module is awesome, other users will want to play with it. Let them
-know what the ground rules for contributing are.
-
-## Release Notes/Contributors/Etc **Optional**
-
-If you aren't using changelog, put your release notes here (though you should
-consider using changelog). You may also add any additional sections you feel are
-necessary or important to include here. Please use the `## ` header.
+* Oracle not supported yet
