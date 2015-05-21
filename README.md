@@ -31,10 +31,9 @@ to use with a CIC server from Interactive Intelligence. Reboots once the install
 
 ### What dialer affects
 
-* A list of files, packages, services, or operations that the module will alter,
-  impact, or execute on the system it's installed on.
-* This is a great place to stick any warnings.
-* Can be in list or paragraph form.
+* Installs SQL 2008 R2 Native Client
+* Installs SQL Server 2012 Express
+* Installs CCS or ODS
 
 ### Setup Requirements **OPTIONAL**
 

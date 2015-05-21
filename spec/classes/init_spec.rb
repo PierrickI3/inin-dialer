@@ -81,6 +81,13 @@ describe 'dialer' do
     it { should contain_package('sql2008r2.nativeclient')}
   end
 
+  # ----------
+  # SQL Server
+  # ----------
+  context 'shoud install SQL server' do
+    it { should contain_class('sqlserver')}
+  end
+
   # ---
   # ODS
   # ---
@@ -93,9 +100,35 @@ describe 'dialer' do
   	it { should_not contain_package('dialer-ods-install') }
   end
 
+  context 'should NOT create a sql file to create the database' do
+    let(:params) {{ :product => 'ODS', :ensure => 'installed', :version => '2015R2', :ccsservername => '' }}
+    it {should_not contain_file('c:/tmp/createdatabase.sql' }
+  end
+
+  context 'should NOT create the database' do
+    let(:params) {{ :product => 'ODS', :ensure => 'installed', :version => '2015R2', :ccsservername => '' }}
+    it {should_not contain_exec('create-sql-database' }
+  end
+
+  context 'should NOT create a udl file' do
+    let(:params) {{ :product => 'ODS', :ensure => 'installed', :version => '2015R2', :ccsservername => '' }}
+    it {should_not contain_file('c:/tmp/dialerdatabase.udl' }
+  end
+
+  context 'should NOT install .net 3.5' do
+    let(:params) {{ :product => 'CCS', :ensure => 'installed', :version => '2015R2', :ccsservername => '' }}
+    it { should_not contain_exec('dotnet-35') }
+  end
+
   # ---
   # CCS
   # ---
+
+  context 'should install .net 3.5' do
+    let(:params) {{ :product => 'CCS', :ensure => 'installed', :version => '2015R2', :ccsservername => '' }}
+    it { should contain_exec('dotnet-35') }
+  end
+
   context 'should have a CCS package' do
   	let(:params) {{ :product => 'CCS', :ensure => 'installed', :version => '2015R2', :ccsservername => '' }}
   	it { should contain_package('dialer-ccs-install') }
@@ -104,6 +137,21 @@ describe 'dialer' do
   context 'should not have a CCS package when ODS is requested' do
   	let(:params) {{ :product => 'ODS', :ensure => 'installed', :version => '2015R2', :ccsservername => 'testccs' }}
   	it { should_not contain_package('dialer-ccs-install') }
+  end
+
+  context 'should create a sql file to create the database' do
+    let(:params) {{ :product => 'CCS', :ensure => 'installed', :version => '2015R2', :ccsservername => '' }}
+    it {should contain_file('c:/tmp/createdatabase.sql' }
+  end
+
+  context 'should create the database' do
+    let(:params) {{ :product => 'CCS', :ensure => 'installed', :version => '2015R2', :ccsservername => '' }}
+    it {should contain_exec('create-sql-database' }
+  end
+
+  context 'should create a udl file' do
+    let(:params) {{ :product => 'CCS', :ensure => 'installed', :version => '2015R2', :ccsservername => '' }}
+    it {should contain_file('c:/tmp/dialerdatabase.udl' }
   end
 
   # ----

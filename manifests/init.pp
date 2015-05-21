@@ -80,6 +80,8 @@ class dialer (
   $mountdriveletter = 'f:'
   $daascache        = 'C:/daas-cache'
   $dialeriso        = "Dialer_${version}.iso"
+  $sa_password      = 'D0gf00d'
+  $database         = 'DialerDB'
 
   case $ensure
   {
@@ -92,24 +94,8 @@ class dialer (
         message => 'Installs are pending reboot. Rebooting now.',
       }
 
-      # Install .Net 3.5
-      exec {'dotnet-35':
-        command  => 'Install-WindowsFeature -name NET-Framework-Core',
-        provider => powershell,
-        path     => $::path,
-        cwd      => $::system32,
-        timeout  => 300,
-        require  => Reboot['before'],
-      }
-
-      # Install SQL 2008 R2 Native Client
-      package {'sql2008r2.nativeclient':
-        ensure   => installed,
-        provider => chocolatey,
-        require  => Reboot['before'],
-      }
-
-      # Mount Dialer ISO. No need to unmount as we are rebooting when finished.
+      # Mount Dialer ISO. No need to unmount it since we reboot 
+      # once the installs are done.
       debug('Mounting Dialer ISO')
       exec {'mount-dialer-iso':
         command => "cmd.exe /c imdisk -a -f \"${daascache}/${dialeriso}\" -m ${mountdriveletter}",
@@ -120,6 +106,7 @@ class dialer (
         require => Reboot['before'],
       }
 
+      # Install ODS or CCS based on the $product parameter
       case $product
       {
         ODS:
@@ -161,6 +148,42 @@ class dialer (
         CCS:
         {
 
+          # Install .Net 3.5
+          exec {'dotnet-35':
+            command  => 'Install-WindowsFeature -name NET-Framework-Core',
+            provider => powershell,
+            path     => $::path,
+            cwd      => $::system32,
+            timeout  => 600,
+          }
+
+          # Install SQL 2008 R2 Native Client (required for DialerTranServer)
+          package {'sql2008r2.nativeclient':
+            ensure   => installed,
+            provider => chocolatey,
+          }
+
+          # Install SQL 2008 R2 Command Line (required to import or export data 
+          # from a contact list)
+          package {'sql2008r2.cmdline':
+            ensure   => installed,
+            provider => chocolatey,
+            require  => [
+              Package['sql2008r2.nativeclient'],
+            ],
+          }
+
+          # Install SQL Server
+          class {'sqlserver':
+            ensure          => installed,
+            edition         => 'Express',
+            features        => ['SQL', 'Tools'],
+            sa_password     => $sa_password,
+            source          => 'C:\\daas-cache',
+            source_user     => '',
+            source_password => '',
+          }
+
           # Install CCS
           debug('Installing CCS')
           package {'dialer-ccs-install':
@@ -179,16 +202,50 @@ class dialer (
               {'TRACING_LOGPATH'       => 'C:\\I3\\IC\\Logs'},
             ],
             require         => [
+              Reboot['before'],
               Exec['mount-dialer-iso'],
               Exec['dotnet-35'],
-              Reboot['before'],
               Package['sql2008r2.nativeclient'],
+              Package['sql2008r2.cmdline'],
+              Class['sqlserver'],
             ],
             notify          => Reboot['after-install'],
           }
 
+          # File containing the script to create the Dialer database
+          file {'c:/tmp/createdatabase.sql':
+            ensure  => present,
+            content => template('dialer/createdatabase.sql.erb'),
+          }
+
+          # Create the Dialer database
+          exec {'create-sql-database':
+            command => "sqlcmd -U sa -P ${sa_password} -d ${database} -i C:\\tmp\\createdatabase.sql",
+            cwd     => ::system32,
+            path    => ::path,
+            require => [
+              File['c:/tmp/createdatabase.sql'],
+              Package['dialer-ccs-install'],
+            ],
+          }
+
+          # Create the UDL file
+          file {'c:/tmp/dialerdatabase.udl':
+            ensure  => present,
+            name    => 'connection.udl',
+            content => '[oledb]',
+            require => [
+              Exec['create-sql-database'],
+              Package['dialer-ccs-install'],
+            ],
+          }
+
           notify {'installed':
-            require => Package['dialer-ccs-install'],
+            require => [
+              Package['dialer-ccs-install'],
+              Exec['create-sql-database'],
+              File['c:/tmp/dialerdatabase.udl'],
+            ],
           }
         }
         default:
@@ -197,7 +254,8 @@ class dialer (
         }
       }
 
-      # Reboot when finished. Drive will not be mounted again so no need to unmount it.
+      # Reboot when finished. Drive will not be mounted again 
+      # so no need to unmount it.
       reboot {'after-install':
         apply   => finished,
         message => 'Install of CCS or ODS is finished. Rebooting',
