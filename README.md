@@ -1,8 +1,8 @@
-# inin-dialer
+# PierrickL-dialer
 
 [![Build Status](https://travis-ci.org/PierrickI3/inin-dialer.svg?branch=master)](https://travis-ci.org/PierrickI3/inin-dialer)
 
-Puppet module to install and configure ININ's ODS & CCS
+Puppet module to install and configure ININ's ODS (Outbound Dialing Server) & CCS (Central Campaign Server)
 
 #### Table of Contents
 
@@ -11,11 +11,8 @@ Puppet module to install and configure ININ's ODS & CCS
 3. [Setup - The basics of getting started with dialer](#setup)
     * [What dialer affects](#what-dialer-affects)
     * [Setup requirements](#setup-requirements)
-    * [Beginning with dialer](#beginning-with-dialer)
 4. [Usage - Configuration options and additional functionality](#usage)
-5. [Reference - An under-the-hood peek at what the module is doing and how](#reference)
 5. [Limitations - OS compatibility, etc.](#limitations)
-6. [Development - Guide for contributing to the module](#development)
 
 ## Overview
 
@@ -32,9 +29,9 @@ to use with a CIC server from Interactive Intelligence. Reboots once the install
 ### What dialer affects
 
 * Installs SQL 2008 R2 Native Client
-* Installs SQL Server 2012 Express & creates a database
+* Installs SQL Server 2012 Express & creates a database. .Net 3.5 is automatically installed.
 * Installs CCS or ODS
-* Creates a UDL file called C:\tmp\connection.udl
+* Creates a UDL file on the desktop
 
 ### Setup Requirements
 
