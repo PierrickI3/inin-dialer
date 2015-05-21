@@ -28,6 +28,15 @@ describe 'dialer' do
     end
   end
 
+  context 'should fail if ensure is not set to installed is not set' do
+    let(:params) {{ :product => 'ODS', :ensure => 'clearly not installed', :ccsservername => 'testccs' }}
+    it do
+      expect {
+        should contain_class('dialer') 
+      }.to raise_error(Puppet::Error, /Must pass version to Class\[Dialer\]/)
+    end
+  end
+
   # ---------------
   # Parameter tests
   # ---------------
@@ -50,7 +59,7 @@ describe 'dialer' do
   end
 
   context 'should fail if version parameter is not set' do
-  	let(:params) {{ :product => 'ODS', :ensure => '', :ccsservername => 'testccs' }}
+  	let(:params) {{ :product => 'ODS', :ensure => 'installed', :ccsservername => 'testccs' }}
   	it do
   	  expect {
   	    should contain_class('dialer') 
@@ -63,7 +72,7 @@ describe 'dialer' do
   	it do
   	  expect {
   	    should contain_class('dialer') 
-  	  }.to raise_error(Puppet::Error, /Must pass ccsservername to Class\[Dialer\]/)
+  	  }.to raise_error(Puppet::Error, /Name or IP of CCS not specified/)
   	end
   end
 
@@ -98,12 +107,7 @@ describe 'dialer' do
 
   context 'should NOT create a udl file' do
     let(:params) {{ :product => 'ODS', :ensure => 'installed', :version => '2015R2', :ccsservername => 'testccs' }}
-    it {should_not contain_file('c:/tmp/dialerdatabase.udl') }
-  end
-
-  context 'should NOT install .net 3.5' do
-    let(:params) {{ :product => 'ODS', :ensure => 'installed', :version => '2015R2', :ccsservername => 'testccs' }}
-    it { should_not contain_exec('dotnet-35') }
+    it {should_not contain_file('c:/users/vagrant/desktop/connection.udl') }
   end
 
   # ---
@@ -113,11 +117,6 @@ describe 'dialer' do
   context 'should not have an ODS package when CCS is requested' do
     let(:params) {{ :product => 'CCS', :ensure => 'installed', :version => '2015R2', :ccsservername => '' }}
     it { should_not contain_package('dialer-ods-install') }
-  end
-
-  context 'should install .net 3.5' do
-    let(:params) {{ :product => 'CCS', :ensure => 'installed', :version => '2015R2', :ccsservername => '' }}
-    it { should contain_exec('dotnet-35') }
   end
 
   context 'should have a CCS package' do
@@ -147,7 +146,7 @@ describe 'dialer' do
 
   context 'should create a udl file' do
     let(:params) {{ :product => 'CCS', :ensure => 'installed', :version => '2015R2', :ccsservername => '' }}
-    it {should contain_file('c:/tmp/dialerdatabase.udl') }
+    it {should contain_file('c:/users/vagrant/desktop/connection.udl') }
   end
 
 end

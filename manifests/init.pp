@@ -17,21 +17,13 @@
 # [ccsservername]
 #   Name or IP address of the CCS
 #
-# === Variables
-#
-# Here you should define a list of variables that this module would require.
-#
-# [*sample_variable*]
-#   Explanation of how this variable affects the funtion of this class and if
-#   it has a default. e.g. "The parameter enc_ntp_servers must be set by the
-#   External Node Classifier as a comma separated list of hostnames." (Note,
-#   global variables should be avoided in favor of class parameters as
-#   of Puppet 2.6.)
-#
 # === Examples
 #
 #  class { 'dialer':
-#    product => 'ODS',
+#    ensure        => 'installed',
+#    product       => 'ODS',
+#    version       => '2015_R2',
+#    ccsservername => 'ccsserver',
 #  }
 #
 # === Authors
@@ -46,10 +38,10 @@ include stdlib
 include reboot
 
 class dialer (
-  $ensure,
+  $ensure = 'installed',
   $product,
   $version,
-  $ccsservername,
+  $ccsservername = '',
 )
 {
 
@@ -88,12 +80,6 @@ class dialer (
     installed:
     {
 
-      # Reboot if an install is pending
-      reboot {'before':
-        when    => pending,
-        message => 'Installs are pending reboot. Rebooting now.',
-      }
-
       # Mount Dialer ISO. No need to unmount it since we reboot 
       # once the installs are done.
       debug('Mounting Dialer ISO')
@@ -103,7 +89,6 @@ class dialer (
         cwd     => $::system32,
         creates => "${mountdriveletter}/Installs/ServerComponents/Dialer_${version}.msi",
         timeout => 30,
-        require => Reboot['before'],
       }
 
       # Install ODS or CCS based on the $product parameter
@@ -133,8 +118,7 @@ class dialer (
             ],
             require         => [
               Exec['mount-dialer-iso'],
-              Exec['dotnet-35'],
-              Reboot['before'],
+              #Exec['dotnet-35'], # already installed by SQL
               Package['sql2008r2.nativeclient'],
             ],
             notify          => Reboot['after-install'],
@@ -147,16 +131,6 @@ class dialer (
 
         CCS:
         {
-
-          # Install .Net 3.5
-          exec {'dotnet-35':
-            command  => 'Install-WindowsFeature -name NET-Framework-Core',
-            provider => powershell,
-            path     => $::path,
-            cwd      => $::system32,
-            timeout  => 600,
-          }
-
           # Install SQL 2008 R2 Native Client (required for DialerTranServer)
           package {'sql2008r2.nativeclient':
             ensure   => installed,
@@ -202,14 +176,12 @@ class dialer (
               {'TRACING_LOGPATH'       => 'C:\\I3\\IC\\Logs'},
             ],
             require         => [
-              Reboot['before'],
               Exec['mount-dialer-iso'],
-              Exec['dotnet-35'],
               Package['sql2008r2.nativeclient'],
               Package['sql2008r2.cmdline'],
               Class['sqlserver'],
             ],
-            notify          => Reboot['after-install'],
+            # TODO Create a custom fact to check if Interaction Center service is running
           }
 
           # File containing the script to create the Dialer database
@@ -219,10 +191,11 @@ class dialer (
           }
 
           # Create the Dialer database
+          $sqlcmd = '"C:\\Program Files\\Microsoft SQL Server\\Client SDK\\ODBC\\110\\Tools\\Binn\\sqlcmd.exe"'
           exec {'create-sql-database':
-            command => "sqlcmd -U sa -P ${sa_password} -d ${database} -i C:\\tmp\\createdatabase.sql",
-            cwd     => ::system32,
-            path    => ::path,
+            command => "${sqlcmd} -U sa -P \"${sa_password}\" -i C:\\tmp\\createdatabase.sql",
+            cwd     => $::system32,
+            path    => $::path,
             require => [
               File['c:/tmp/createdatabase.sql'],
               Package['dialer-ccs-install'],
@@ -230,22 +203,18 @@ class dialer (
           }
 
           # Create the UDL file
-          file {'c:/tmp/dialerdatabase.udl':
+          file {'c:/users/vagrant/desktop/connection.udl':
             ensure  => present,
             content => template('dialer/connection.udl.erb'),
             require => [
               Exec['create-sql-database'],
               Package['dialer-ccs-install'],
             ],
+            notify  => Reboot['after-install'],
           }
 
-          notify {'installed':
-            require => [
-              Package['dialer-ccs-install'],
-              Exec['create-sql-database'],
-              File['c:/tmp/dialerdatabase.udl'],
-            ],
-          }
+          # TODO What to do with the UDL file?
+
         }
         default:
         {
@@ -257,7 +226,7 @@ class dialer (
       # so no need to unmount it.
       reboot {'after-install':
         apply   => finished,
-        message => 'Install of CCS or ODS is finished. Rebooting',
+        message => 'Install of CCS or ODS is finished. Rebooting.',
       }
 
     }
