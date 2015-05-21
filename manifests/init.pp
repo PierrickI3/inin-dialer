@@ -168,12 +168,13 @@ class dialer (
               "c:\\windows\\logs\\ccs_${version}.log",
               '/qn',
               '/norestart',
-              {'STARTEDBYEXEORIUPDATE' => '1'},
-              {'REBOOT'                => 'ReallySuppress'},
-              {'PROMPTEDUSER'          => 'vagrant'},
-              {'PROMPTEDPASSWORD'      => 'vagrant'},
-              {'PROMPTEDDOMAIN'        => $::hostname},
-              {'TRACING_LOGPATH'       => 'C:\\I3\\IC\\Logs'},
+              {'STARTEDBYEXEORIUPDATE'   => '1'},
+              {'REBOOT'                  => 'ReallySuppress'},
+              {'INTERACTIVEINTELLIGENCE' => 'C:\\I3\\IC'},
+              {'PROMPTEDUSER'            => 'vagrant'},
+              {'PROMPTEDPASSWORD'        => 'vagrant'},
+              {'PROMPTEDDOMAIN'          => $::hostname},
+              {'TRACING_LOGPATH'         => 'C:\\I3\\IC\\Logs'},
             ],
             require         => [
               Exec['mount-dialer-iso'],
@@ -203,7 +204,7 @@ class dialer (
           }
 
           # Create the UDL file
-          file {'c:/users/vagrant/desktop/connection.udl':
+          file {'C:/I3/IC/Server/UDL/connection.udl':
             ensure  => present,
             content => template('dialer/connection.udl.erb'),
             require => [
@@ -212,8 +213,6 @@ class dialer (
             ],
             notify  => Reboot['after-install'],
           }
-
-          # TODO What to do with the UDL file?
 
         }
         default:

@@ -145,7 +145,7 @@ describe 'dialer' do
 
   context 'should create a udl file' do
     let(:params) {{ :product => 'CCS', :ensure => 'installed', :version => '2015R2', :ccsservername => '' }}
-    it {should contain_file('c:/users/vagrant/desktop/connection.udl') }
+    it {should contain_file('C:/I3/IC/Server/UDL/connection.udl') }
   end
 
 end
