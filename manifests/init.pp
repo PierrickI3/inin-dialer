@@ -41,7 +41,7 @@ class dialer (
   $ensure = 'installed',
   $product,
   $version,
-  $ccsservername = '',
+  $ccsservername,
 )
 {
 
@@ -94,7 +94,7 @@ class dialer (
       # Install ODS or CCS based on the $product parameter
       case $product
       {
-        ODS:
+        'ODS':
         {
           if (!$ccsservername)
           {
@@ -129,7 +129,7 @@ class dialer (
           }
         }
 
-        CCS:
+        'CCS':
         {
           # Install SQL 2008 R2 Native Client (required for DialerTranServer)
           package {'sql2008r2.nativeclient':

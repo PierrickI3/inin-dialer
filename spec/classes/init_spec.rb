@@ -72,7 +72,7 @@ describe 'dialer' do
   	it do
   	  expect {
   	    should contain_class('dialer') 
-  	  }.to raise_error(Puppet::Error, /Name or IP of CCS not specified/)
+  	  }.to raise_error(Puppet::Error, /Must pass ccsservername to Class\[Dialer\]/)
   	end
   end
 
@@ -113,7 +113,6 @@ describe 'dialer' do
   # ---
   # CCS
   # ---
-
   context 'should not have an ODS package when CCS is requested' do
     let(:params) {{ :product => 'CCS', :ensure => 'installed', :version => '2015R2', :ccsservername => '' }}
     it { should_not contain_package('dialer-ods-install') }

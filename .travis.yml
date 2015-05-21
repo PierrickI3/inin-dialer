@@ -6,4 +6,7 @@ notifications:
   env:
     - PUPPET_VERSION=3.7.3
 script: rake spec
+branches:
+    only:
+      - master
 gemfile: Gemfile
