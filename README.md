@@ -28,10 +28,17 @@ to use with a CIC server from Interactive Intelligence. Reboots once the install
 
 ### What dialer affects
 
-* Installs SQL 2008 R2 Native Client
-* Installs SQL Server 2012 Express & creates a database. .Net 3.5 is automatically installed.
-* Installs CCS or ODS
-* Creates a UDL file on the desktop
+* If installing CCS
+  * Installs SQL 2008 R2 Native Client
+  * Installs SQL Server 2012 Express (.Net 3.5 is automatically installed by the gildas-sqlserver module)
+  * Installs CCS
+  * Creates a database called DialerDB
+  * Creates a UDL file in C:\I3\IC\Server\UDL
+  * Reboots
+
+* If installing ODS
+  * Installs ODS
+  * Reboots
 
 ### Setup Requirements
 
