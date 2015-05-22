@@ -19,11 +19,22 @@
 #
 # === Examples
 #
+#  To install ODS:
+# 
 #  class { 'dialer':
 #    ensure        => 'installed',
 #    product       => 'ODS',
 #    version       => '2015_R2',
 #    ccsservername => 'ccsserver',
+#  }
+#
+#  To install CCS:
+#
+#  class { 'dialer':
+#    ensure        => 'installed',
+#    product       => 'CCS',
+#    version       => '2015_R2',
+#    ccsservername => '',
 #  }
 #
 # === Authors
