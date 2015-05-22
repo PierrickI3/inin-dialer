@@ -118,8 +118,6 @@ class dialer (
             ],
             require         => [
               Exec['mount-dialer-iso'],
-              #Exec['dotnet-35'], # already installed by SQL
-              Package['sql2008r2.nativeclient'],
             ],
             notify          => Reboot['after-install'],
           }
