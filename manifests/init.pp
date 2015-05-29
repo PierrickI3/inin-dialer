@@ -131,6 +131,7 @@ class dialer (
               Exec['mount-dialer-iso'],
             ],
             notify          => Reboot['after-install'],
+            provider        => windows,
           }
 
           notify {'installed':
@@ -191,6 +192,7 @@ class dialer (
               Package['sql2008r2.cmdline'],
               Class['sqlserver'],
             ],
+            provider        => windows,
             # TODO Create a custom fact to check if Interaction Center service is running
           }
 
