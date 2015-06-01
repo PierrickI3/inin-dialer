@@ -9,9 +9,6 @@ script: "rake spec SPEC_OPTS='--format documentation'"
 gemfile: Gemfile
 matrix:
   fast_finish: true
-branches:
-    only:
-      - master
 notifications:
   email:
     - pierrick.lozach@inin.com
