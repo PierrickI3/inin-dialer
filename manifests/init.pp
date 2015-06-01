@@ -53,6 +53,8 @@ class dialer (
   $product,
   $version,
   $ccsservername,
+  $dbtemplate = 'dialer/createdatabase.sql.erb',
+  $connectiontemplate = 'dialer/connection.udl.erb',
 )
 {
 
@@ -199,7 +201,7 @@ class dialer (
           # File containing the script to create the Dialer database
           file {'c:/tmp/createdatabase.sql':
             ensure  => present,
-            content => template('dialer/createdatabase.sql.erb'),
+            content => template($dbtemplate),
           }
 
           # Create the Dialer database
@@ -217,7 +219,7 @@ class dialer (
           # Create the UDL file
           file {'C:/I3/IC/Server/UDL/connection.udl':
             ensure  => present,
-            content => template('dialer/connection.udl.erb'),
+            content => template($connectiontemplate),
             require => [
               Exec['create-sql-database'],
               Package['dialer-ccs-install'],
