@@ -145,6 +145,34 @@ class dialer (
             provider        => windows,
           }
 
+          # Notifier Registry Fix
+          debug('Creating Powershell script to fix Notifier registry value if needed...')
+          file {"${cache_dir}\\FixNotifierRegistryValue_ods.ps1":
+            ensure  => 'file',
+            owner   => 'Vagrant',
+            group   => 'Administrators',
+            content => "
+              \$NotifierRegPath = \"HKLM:\\SOFTWARE\\Wow6432Node\\Interactive Intelligence\\EIC\\Notifier\"
+              \$NotifierKey = \"NotifierServer\"
+
+              \$CurrentNotifierValue = (Get-ItemProperty -Path \$NotifierRegPath -Name \$NotifierKey).NotifierServer
+              if (\$CurrentNotifierValue -ne \$CurrentComputerName)
+              {
+                  Write-Host \"Current Notifier registry value is not set properly. Fixing...\"
+                  Set-ItemProperty -Path \$NotifierRegPath -Name \$NotifierKey -Value \$env:COMPUTERNAME
+              }
+            ",
+            before  => Exec['notifier-fix'],
+          }
+
+          debug('Fixing Notifier registry value if needed...')
+          exec {'notifier-fix':
+            command => "${cache_dir}\\FixNotifierRegistryValue_ods.ps1",
+            provider => powershell,
+            timeout  => 3600,
+            require  => Package['dialer-ods-install'],
+          }
+
           notify {'installed':
             require => Package['dialer-ods-install'],
           }
@@ -209,7 +237,7 @@ class dialer (
 
           # Notifier Registry Fix
           debug('Creating Powershell script to fix Notifier registry value if needed...')
-          file {"${cache_dir}\\FixNotifierRegistryValue.ps1":
+          file {"${cache_dir}\\FixNotifierRegistryValue_ccs.ps1":
             ensure  => 'file',
             owner   => 'Vagrant',
             group   => 'Administrators',
@@ -229,7 +257,7 @@ class dialer (
 
           debug('Fixing Notifier registry value if needed...')
           exec {'notifier-fix':
-            command => "${cache_dir}\\FixNotifierRegistryValue.ps1",
+            command => "${cache_dir}\\FixNotifierRegistryValue_ccs.ps1",
             provider => powershell,
             timeout  => 3600,
             require  => Package['dialer-ccs-install'],
