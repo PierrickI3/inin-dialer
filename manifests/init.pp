@@ -87,11 +87,12 @@ class dialer (
   if ($product == 'CCS')
   {
     $dialeriso = latest_version($daascache, 'Dialer_[0-9]*_R?.iso')
+    $versiontouse = $version
   }
   else
   {
-    $version   = "${::cic_installed_major_version}_R${::cic_installed_release}"
-    $dialeriso = "Dialer_${version}.iso"
+    $versiontouse = "${::cic_installed_major_version}_R${::cic_installed_release}"
+    $dialeriso    = "Dialer_${versiontouse}.iso"
   }
 
   $sa_password      = 'D0gf00d'
@@ -109,7 +110,7 @@ class dialer (
         command => "cmd.exe /c imdisk -a -f \"${daascache}/${dialeriso}\" -m ${mountdriveletter}",
         path    => $::path,
         cwd     => $::system32,
-        creates => "${mountdriveletter}/Installs/ServerComponents/Dialer_${version}.msi",
+        creates => "${mountdriveletter}/Installs/ServerComponents/Dialer_${versiontouse}.msi",
         timeout => 30,
       }
 
@@ -128,10 +129,10 @@ class dialer (
           debug('Installing ODS')
           package {'dialer-ods-install':
             ensure          => installed,
-            source          => "${mountdriveletter}\\Installs\\ServerComponents\\ODS_${version}.msi",
+            source          => "${mountdriveletter}\\Installs\\ServerComponents\\ODS_${versiontouse}.msi",
             install_options => [
               '/l*v',
-              "c:\\windows\\logs\\ods_${version}.log",
+              "c:\\windows\\logs\\ods_${versiontouse}.log",
               '/qn',
               '/norestart',
               {'STARTEDBYEXEORIUPDATE' => '1'},
@@ -216,7 +217,7 @@ class dialer (
             source          => "${mountdriveletter}\\Installs\\Off-ServerComponents\\${ccsmsi}",
             install_options => [
               '/l*v',
-              "c:\\windows\\logs\\ccs_${version}.log",
+              "c:\\windows\\logs\\ccs_${versiontouse}.log",
               '/qn',
               '/norestart',
               {'STARTEDBYEXEORIUPDATE'   => '1'},
