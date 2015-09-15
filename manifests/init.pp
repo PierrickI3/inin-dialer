@@ -86,6 +86,7 @@ class dialer (
   if ($product == 'CCS')
   {
     $dialeriso = latest_version($daascache, 'Dialer_[0-9]*_R?.iso')
+    $versiontouse = $dialeriso[7,7]
   }
   else
   {
@@ -206,13 +207,11 @@ class dialer (
             source_password => '',
           }
 
-          $ccsmsi = latest_version("${mountdriveletter}/Installs/ServerComponents", 'CCS_[0-9]*_R?.msi')
-
           # Install CCS
           debug('Installing CCS')
           package {'dialer-ccs-install':
             ensure          => installed,
-            source          => "${mountdriveletter}\\Installs\\Off-ServerComponents\\${ccsmsi}",
+            source          => "${mountdriveletter}\\Installs\\Off-ServerComponents\\CCS_${versiontouse}.msi",
             install_options => [
               '/l*v',
               'c:\\windows\\logs\\ccs.log',
