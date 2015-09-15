@@ -4,7 +4,7 @@ require 'spec_helper'
 describe 'dialer' do
 
   let(:facts) {{ :operatingsystem => 'Windows' }}
-  let(:params) {{ :product => 'ODS', :ensure => 'installed', :version => '2015R2', :ccsservername => 'testccs' }}
+  let(:params) {{ :product => 'ODS', :ensure => 'installed', :ccsservername => 'testccs' }}
 
   # -----------
   # Basic tests
