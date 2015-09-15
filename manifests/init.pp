@@ -86,7 +86,7 @@ class dialer (
   if ($product == 'CCS')
   {
     $dialeriso = latest_version($daascache, 'Dialer_[0-9]*_R?.iso')
-    $versiontouse = $dialeriso[7,7]
+    $versiontouse = regsubst($dialeriso, 'Dialer_(.*).iso', '\1')
   }
   else
   {
