@@ -138,10 +138,7 @@ class dialer (
               {'REBOOT'                => 'ReallySuppress'},
               {'CCSSERVERNAME'         => $ccsservername },
             ],
-            require         => [
-              Exec['mount-dialer-iso'],
-            ],
-            notify          => Reboot['after-install'],
+            require         => Exec['mount-dialer-iso'],
             provider        => windows,
           }
 
@@ -162,19 +159,17 @@ class dialer (
                   Set-ItemProperty -Path \$NotifierRegPath -Name \$NotifierKey -Value \$env:COMPUTERNAME
               }
             ",
+            require => Package['dialer-ods-install'],
             before  => Exec['notifier-fix'],
           }
 
           debug('Fixing Notifier registry value if needed...')
           exec {'notifier-fix':
-            command => "${cache_dir}\\FixNotifierRegistryValue_ods.ps1",
+            command  => "${cache_dir}\\FixNotifierRegistryValue_ods.ps1",
             provider => powershell,
             timeout  => 3600,
             require  => Package['dialer-ods-install'],
-          }
-
-          notify {'installed':
-            require => Package['dialer-ods-install'],
+            notify   => Reboot['after-install'],
           }
         }
 
