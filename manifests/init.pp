@@ -48,7 +48,6 @@ include reboot
 class dialer (
   $ensure = 'installed',
   $product,
-  $version,
   $ccsservername,
   $dbtemplate = 'dialer/createdatabase.sql.erb',
   $connectiontemplate = 'dialer/connection.udl.erb',
@@ -87,7 +86,6 @@ class dialer (
   if ($product == 'CCS')
   {
     $dialeriso = latest_version($daascache, 'Dialer_[0-9]*_R?.iso')
-    $versiontouse = $version
   }
   else
   {
@@ -217,7 +215,7 @@ class dialer (
             source          => "${mountdriveletter}\\Installs\\Off-ServerComponents\\${ccsmsi}",
             install_options => [
               '/l*v',
-              "c:\\windows\\logs\\ccs_${versiontouse}.log",
+              'c:\\windows\\logs\\ccs.log',
               '/qn',
               '/norestart',
               {'STARTEDBYEXEORIUPDATE'   => '1'},
