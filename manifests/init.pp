@@ -1,6 +1,8 @@
 # == Class: dialer
 #
-# Installs and configures Dialer's ODS and CCS products
+# Installs and configures Dialer's ODS and CCS products.
+# If CCS is selected, will install the latest version available.
+# If ODS is selected, will install the same version than the installed CIC.
 #
 # === Parameters
 #
@@ -10,9 +12,6 @@
 #
 # [product]
 #   Either ODS (Outbound Dialer Server) or CCS (Central Campaign Server)
-#
-# [version]
-#   Dialer version (i.e. 2015_R2)
 #
 # [ccsservername]
 #   Name or IP address of the CCS
@@ -24,7 +23,6 @@
 #  class { 'dialer':
 #    ensure        => 'installed',
 #    product       => 'ODS',
-#    version       => '2015_R2',
 #    ccsservername => 'ccsserver',
 #  }
 #
@@ -33,7 +31,6 @@
 #  class { 'dialer':
 #    ensure        => 'installed',
 #    product       => 'CCS',
-#    version       => '2015_R2',
 #    ccsservername => '',
 #  }
 #
@@ -76,12 +73,6 @@ class dialer (
     fail('only installed is supported for the ensure parameter at this time')
   }
 
-  if (!$version)
-  {
-    err('dialer version is not defined')
-    fail('dialer version is not defined')
-  }
-
   $cache_dir = hiera('core::cache_dir', 'c:/users/vagrant/appdata/local/temp') # If I use c:/windows/temp then a circular dependency occurs when used with SQL
   if (!defined(File[$cache_dir]))
   {
@@ -93,7 +84,16 @@ class dialer (
 
   $mountdriveletter = 'f:'
   $daascache        = 'C:/daas-cache'
-  $dialeriso        = "Dialer_${version}.iso"
+  if ($product == 'CCS')
+  {
+    $dialeriso = latest_version($daascache, 'Dialer_[0-9]*_R?.iso')
+  }
+  else
+  {
+    $version   = "${::cic_installed_major_version}_R${::cic_installed_release}"
+    $dialeriso = "Dialer_${version}.iso"
+  }
+
   $sa_password      = 'D0gf00d'
   $database         = 'DialerDB'
 
@@ -207,11 +207,13 @@ class dialer (
             source_password => '',
           }
 
+          $ccsmsi = latest_version("${mountdriveletter}/Installs/ServerComponents", 'CCS_[0-9]*_R?.msi')
+
           # Install CCS
           debug('Installing CCS')
           package {'dialer-ccs-install':
             ensure          => installed,
-            source          => "${mountdriveletter}\\Installs\\Off-ServerComponents\\CCS_${version}.msi",
+            source          => "${mountdriveletter}\\Installs\\Off-ServerComponents\\${ccsmsi}",
             install_options => [
               '/l*v',
               "c:\\windows\\logs\\ccs_${version}.log",
